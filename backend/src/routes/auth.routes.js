@@ -8,8 +8,8 @@ const SECRET_KEY = "mi_secreto";
 
 router.post("/register", async (req, res) => {
   try {
-    const { username, password } = req.body;
-    const user = new User({ username, password });
+    const { username, password, rol, name, email } = req.body;
+    const user = new User({ username, password, rol, name, email });
     await user.save();
 
     res.status(201).json({ message: "Usuario creado" });
@@ -21,13 +21,14 @@ router.post("/register", async (req, res) => {
 router.post(`/login`, async (req, res) => {
   try {
     const { username, password } = req.body;
-    const user = await User.findOne({ usernae });
+    const user = await User.findOne({ username });
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ error: "Creedenciales incorrectas" });
     }
-    const token = jwt.sign({ userId: user._id }, SECRET_KEY, {
+    const token = jwt.sign({ userId: user._id, rol: user.rol }, SECRET_KEY, {
       expiresIn: "1h",
     });
+
     res.json({ token });
   } catch (error) {
     res.status(500).json({ error: "Error en el serivdor" });

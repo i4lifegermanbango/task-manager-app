@@ -9,7 +9,7 @@ import { Router } from '@angular/router';
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/auth';
+  private apiUrl = 'http://localhost:5000/auth';
   private authState = new BehaviorSubject<boolean>(this.hasToken());
 
   constructor(
@@ -21,10 +21,13 @@ export class AuthService {
     return !!localStorage.getItem('token');
   }
 
-  register(username: string, password: string) {
-    return this.http.post(`${this.apiUrl}/auth/register`, {
+  register(username: string, password: string, name: string, email: string) {
+    return this.http.post(`${this.apiUrl}/register`, {
       username,
       password,
+      name,
+      email,
+      rol: 'user',
     });
   }
 
@@ -32,17 +35,25 @@ export class AuthService {
     return this.http
       .post<{
         token: string;
-      }>(`${this.apiUrl}/auth/login`, { username, password })
+      }>(`${this.apiUrl}/login`, { username, password })
       .pipe(
         tap((response) => {
           localStorage.setItem('token', response.token);
           this.authState.next(true);
+          const payload: any = JSON.parse(atob(response.token.split('.')[1]));
+          localStorage.setItem('rol', payload.rol);
         }),
       );
   }
 
+  getRol(): string | null {
+    return localStorage.getItem('rol');
+  }
+
   logout() {
     localStorage.removeItem('token');
+    localStorage.removeItem('rol');
+    this.authState.next(false);
     this.authState.next(false);
     this.router.navigate(['/login']);
   }

@@ -1,0 +1,29 @@
+ion-content {
+  --background: #112442;
+}
+
+.encabezado ion-toolbar {
+  --background: #0cad2c;
+  text-align: center;
+}
+
+.encabezado ion-title {
+  font-weight: bold;
+  color: white;
+}
+
+ion-list {
+  background: #112442;
+}
+
+ion-item {
+  --background: #b3bcc9;
+  margin-bottom: 10px;
+  border-radius: 10px;
+}
+
+.barraBuscar {
+  --ion-item-background: #112442;
+  --background: #112442;
+  --color: white;
+}

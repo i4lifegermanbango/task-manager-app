@@ -26,7 +26,127 @@
   text-decoration: none;
 }
 
-.completed{
-  text-decoration: line-through ;
-  color:gray;
+.completed {
+  color: white;
+}
+
+ion-content {
+  --background: #112442;
+}
+
+ion-content {
+  --background: #112442;
+}
+
+ion-content ion-item {
+  --border-color: white;
+}
+
+ion-item {
+  --ion-item-background: #112442;
+  --color: white;
+}
+
+/* Para asegurar que la lista también */
+ion-list {
+  background: #112442;
+}
+
+ion-checkbox {
+  --border-color: white;
+  --checkbox-background-checked: white;
+  --border-color-checked: white;
+  --checkmark-color: black;
+}
+
+ion-select {
+  color: white;
+}
+
+ion-chip {
+  background-color: white;
+}
+.boton_eliminar {
+  --background: #e8132f;
+}
+
+.boton_menuTags {
+  --background: #0cad2c;
+}
+.encabezado ion-toolbar {
+  --background: #0cad2c;
+  text-align: center;
+}
+
+.encabezado ion-title {
+  font-weight: bold;
+  color: white;
+}
+
+.barraTareas ion-toolbar {
+  --background: #51698f;
+}
+
+.barraTareas ion-title {
+  color: white;
+  font-weight: bold;
+}
+
+.barraTareas ion-button {
+  color: white;
+}
+
+.cabezaLista ion-button {
+  --background: #0cad2c;
+}
+
+.header-row {
+  color: white;
+}
+
+.task-title {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.task-title:hover {
+  color: #0cad2c;
+}
+
+.task-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background-color: #0cad2c;
+}
+
+.task-card:hover {
+  transform: scale(1.02);
+}
+
+.completed {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.task-card ion-card-title {
+  color: white !important;
+  font-weight: bold;
+}
+
+.task-card ion-item {
+  --ion-item-background: #0cad2c;
+}
+
+.centrado {
+  text-align: center;
+  color: white;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.task-image {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 10px;
 }

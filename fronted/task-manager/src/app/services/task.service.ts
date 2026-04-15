@@ -7,7 +7,13 @@ import { HttpHeaders } from '@angular/common/http';
 export interface Task {
   _id?: string;
   title: string;
-  completed: boolean;
+  completed: 'pendiente' | 'en_proceso' | 'completed';
+  tags?: Tag[];
+}
+
+export interface Tag {
+  _id: string;
+  name: string;
 }
 
 @Injectable({
@@ -26,8 +32,36 @@ export class TaskService {
     return this.http.get<Task[]>(this.apiUrl, { headers });
   }
 
-  addTask(title: string): Observable<Task> {
-    return this.http.post<Task>(this.apiUrl, { title });
+  addTask(formData: FormData): Observable<Task> {
+    return this.http.post<Task>(this.apiUrl, formData, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+  }
+
+  addTagToTask(taskId: string, tagId: string): Observable<Task> {
+    return this.http.put<Task>(
+      `${this.apiUrl}/${taskId}/add-tag`,
+      { tagId },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      },
+    );
+  }
+
+  removeTagFromTask(taskId: string, tagId: string): Observable<Task> {
+    return this.http.put<Task>(
+      `${this.apiUrl}/${taskId}/remove-tag`,
+      { tagId },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      },
+    );
   }
 
   toggleTask(id: string): Observable<Task> {
@@ -36,5 +70,14 @@ export class TaskService {
 
   deleteTask(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
+  deleteAllTasks() {
+    const headers = new HttpHeaders().set(
+      'Authorization',
+      `Bearer ${localStorage.getItem('token')}`,
+    );
+
+    return this.http.delete(this.apiUrl, { headers });
   }
 }

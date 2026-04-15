@@ -1,0 +1,48 @@
+ion-content {
+  --background: #112442;
+}
+
+.cajaRegistro {
+  background: #51698f;
+  width: 300px;
+  margin: 20px auto;
+  padding: 5px 50px 10px 50px;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.cajaRegistro h2 {
+  text-align: center;
+  white-space: nowrap;
+  color: white;
+  font-weight: bold;
+}
+
+.cajaRegistro ion-label {
+  color: white;
+}
+
+ion-input {
+  margin-bottom: 15px;
+  --background: #b3bcc9;
+  --border-radius: 20px;
+  --padding-start: 15px;
+  --padding-end: 15px;
+}
+
+ion-input.error {
+  border: 2px solid red;
+  border-radius: 20px;
+}
+
+.botones {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+ion-button {
+  --border-radius: 50px;
+  width: 135px;
+  --background: #0cad2c;
+  height: 40px;
+}

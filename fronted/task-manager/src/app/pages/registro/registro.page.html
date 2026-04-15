@@ -1,0 +1,38 @@
+<ion-content [fullscreen]="true">
+  <div class="cajaRegistro">
+    <h2>Registro de Usuario</h2>
+    <ion-label>Nombre: </ion-label>
+    <ion-input [(ngModel)]="name" color="Dark"></ion-input>
+    <ion-label>Correo:</ion-label>
+    <ion-input
+      [(ngModel)]="email"
+      name="email"
+      [class.error]="email && !emailRegex.test(email)"
+      color="dark"
+    ></ion-input>
+    <p *ngIf="email && !emailRegex.test(email)" class="error-text">
+      El email no es válido
+    </p>
+    <ion-label>Usuario:</ion-label>
+    <ion-input [(ngModel)]="username" color="Dark"></ion-input>
+    <ion-label>Contraseña:</ion-label>
+    <ion-input type="password" color="Dark" [(ngModel)]="password"></ion-input>
+    <ion-label>Repetir Contraseña:</ion-label>
+    <ion-input
+      type="password"
+      color="Dark"
+      [(ngModel)]="confirmPassword"
+      [class.error]="password && confirmPassword && password !== confirmPassword"
+    ></ion-input>
+    <p
+      *ngIf="password && confirmPassword && password !== confirmPassword"
+      class="error-text"
+    >
+      Las Contraseñas no coinciden
+    </p>
+  </div>
+  <div class="botones">
+    <ion-button (click)="registrar()">Registrarse</ion-button>
+    <ion-button (click)="goToLogin()">Volver</ion-button>
+  </div>
+</ion-content>

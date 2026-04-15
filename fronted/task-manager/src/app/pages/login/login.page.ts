@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
   selector: 'app-login',
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
+  standalone: false,
 })
 export class LoginPage {
   username = '';
@@ -19,5 +20,9 @@ export class LoginPage {
     this.authService.login(this.username, this.password).subscribe(() => {
       this.router.navigate(['/home']);
     });
+  }
+
+  goToRegistro() {
+    this.router.navigate(['/registro']);
   }
 }
