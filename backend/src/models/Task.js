@@ -19,6 +19,11 @@ const taskSchema = new mongoose.Schema(
         ref: "Tag",
       },
     ],
+    userRol: {
+      type: String,
+      enum: ["user", "administrador"],
+      required: true,
+    },
   },
   { timestamps: true },
 );

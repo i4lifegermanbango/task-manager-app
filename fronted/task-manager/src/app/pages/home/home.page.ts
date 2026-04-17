@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { TaskService, Task } from '../../services/task.service';
 import { AuthService } from '../../services/auth.service';
 import { ModalController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { TagService, Tag } from '../../services/tag.service';
+import { DeleteTaskModalComponent } from '../../components/delete-task-modal/delete-task-modal.component';
 
 @Component({
   selector: 'app-home',
@@ -25,11 +26,14 @@ export class HomePage implements OnInit {
   filterFilteredTags: Tag[] = [];
   filterSelectedTags: Tag[] = [];
 
+  openFilter: boolean = false;
+
   constructor(
     private taskService: TaskService,
     private authService: AuthService,
     private router: Router,
     private tagService: TagService,
+    private modalCtrl: ModalController,
   ) {}
 
   ngOnInit(): void {}
@@ -41,10 +45,16 @@ export class HomePage implements OnInit {
   }
 
   filterTagsGlobal() {
+    this.openFilter = true;
+
     this.filterFilteredTags = this.filterTagsLogic(
       this.filterTagSearch,
       this.allTags,
     );
+
+    if (!this.filterTagSearch.trim()) {
+      this.filterSelectedTags = [];
+    }
   }
 
   filterTagsLogic(search: string, tags: Tag[]): Tag[] {
@@ -66,6 +76,39 @@ export class HomePage implements OnInit {
       }));
     });
   }
+
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'pendiente':
+        return 'Pendiente';
+
+      case 'en_proceso':
+        return 'En proceso';
+
+      case 'completada':
+        return 'Completada';
+
+      default:
+        return 'Desconocido';
+    }
+  }
+
+  getStatusIcon(status: string): string {
+    switch (status) {
+      case 'pendiente':
+        return 'time-outline';
+
+      case 'en_proceso':
+        return 'sync-outline';
+
+      case 'completada':
+        return 'checkmark-circle-outline';
+
+      default:
+        return 'help-circle-outline';
+    }
+  }
+
   addTask() {
     if (!this.newTaskTitle.trim()) return;
 
@@ -98,17 +141,16 @@ export class HomePage implements OnInit {
     });
   }
 
-  deleteTask(task: Task) {
-    this.taskService.deleteTask(task._id!).subscribe(() => {
-      this.tasks = this.tasks.filter((t) => t._id !== task._id);
-    });
-  }
-
   filterTags(task: any) {
     task.filteredTags = this.filterTagsLogic(task.tagSearch, this.allTags);
   }
 
   selectTag(task: any, tag: Tag) {
+    console.log(task);
+    console.log(tag);
+
+    task.keepOpen = true;
+
     if (!task.selectedTags.find((t: Tag) => t._id === tag._id)) {
       task.selectedTags.push(tag);
     }
@@ -116,7 +158,6 @@ export class HomePage implements OnInit {
     task.tagSearch = '';
     task.filteredTags = [];
   }
-
   removeSelectedTag(task: any, tag: Tag) {
     task.selectedTags = task.selectedTags.filter((t: Tag) => t._id !== tag._id);
   }
@@ -147,7 +188,7 @@ export class HomePage implements OnInit {
 
     if (this.filterSelectedTags.length > 0) {
       result = result.filter((task) =>
-        this.filterSelectedTags.every((ft) =>
+        this.filterSelectedTags.some((ft) =>
           task.tags?.some((tag: Tag) => tag._id === ft._id),
         ),
       );
@@ -161,8 +202,10 @@ export class HomePage implements OnInit {
       this.filterSelectedTags.push(tag);
     }
 
-    this.filterTagSearch = '';
+    this.filterTagSearch = tag.name;
+
     this.filterFilteredTags = [];
+    this.openFilter = false;
   }
 
   removeFilterTag(tag: Tag) {
@@ -185,6 +228,45 @@ export class HomePage implements OnInit {
     this.router.navigate(['/tags']);
   }
 
+  async openDeleteModal(task: any) {
+    if (task.userRol !== 'user') {
+      this.taskService.deleteTask(task, false).subscribe(() => {
+        this.tasks = this.tasks.filter((t) => t._id !== task._id);
+      });
+      return;
+    }
+
+    const modal = await this.modalCtrl.create({
+      component: DeleteTaskModalComponent,
+      cssClass: 'custom-modal',
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onDidDismiss();
+
+    if (data?.confirmado) {
+      this.taskService.deleteTask(task, data.avisar).subscribe(() => {
+        this.tasks = this.tasks.filter((t) => t._id !== task._id);
+      });
+    }
+  }
+
+  closeFilterDelayed() {
+    setTimeout(() => {
+      this.openFilter = false;
+    }, 200);
+  }
+
+  closeTaskFilterDelayed(task: any) {
+    setTimeout(() => {
+      if (!task.keepOpen) {
+        task.openFilter = false;
+      }
+      task.keepOpen = false;
+    }, 150);
+  }
+
   logout() {
     this.selectedStatus = 'pendiente';
     this.authService.logout();
@@ -193,5 +275,16 @@ export class HomePage implements OnInit {
     this.filterTagSearch = '';
     this.filterFilteredTags = [];
     this.filterSelectedTags = [];
+  }
+
+  @HostListener('document:click', ['$event'])
+  handleClickOutside(event: any) {
+    const clickedInside =
+      event.target.closest('.filter-wrapper') ||
+      event.target.closest('.filter-dropdown');
+
+    if (!clickedInside) {
+      this.openFilter = false;
+    }
   }
 }

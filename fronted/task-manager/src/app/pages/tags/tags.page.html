@@ -1,34 +1,45 @@
 <ion-header class="encabezado">
   <ion-toolbar>
-    <ion-title>Gestión de Tags</ion-title>
+    <ion-buttons slot="start"></ion-buttons>
+
+    <ion-title class="titulo-centrado"> Gestión de Tags </ion-title>
+
     <ion-buttons slot="end">
-      <ion-button (click)="volver()"> Volver </ion-button>
+      <ion-button (click)="volver()" class="btn-volver"> Volver </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <ion-item class="barraBuscar">
-    <ion-input [(ngModel)]="newTagName" placeholder="Nuevo tag"></ion-input>
-    <ion-button (click)="addTag()"> Añadir </ion-button>
-  </ion-item>
+<ion-content>
+  <div class="container">
+    <!-- CREAR TAG -->
+    <div class="barraBuscar">
+      <ion-input
+        [(ngModel)]="newTagName"
+        placeholder="Nuevo tag..."
+      ></ion-input>
 
-  <ion-list>
-    <ion-item *ngFor="let tag of tags">
-      <ion-label>{{ tag.name }}</ion-label>
+      <ion-button (click)="addTag()" class="btn-add"> Añadir </ion-button>
+    </div>
 
-      <ion-button fill="clear" size="small" (click)="updateTag(tag)">
-        Editar
-      </ion-button>
+    <!-- LISTA -->
+    <div class="tags-list">
+      <div class="tag-item" *ngFor="let tag of tags">
+        <span class="tag-name">{{ tag.name }}</span>
 
-      <ion-button
-        fill="clear"
-        color="danger"
-        size="small"
-        (click)="deleteTag(tag)"
-      >
-        Borrar
-      </ion-button>
-    </ion-item>
-  </ion-list>
+        <div class="actions">
+          <ion-button fill="clear" (click)="updateTag(tag)">
+            <ion-icon name="create-outline"></ion-icon>
+          </ion-button>
+
+          <ion-button fill="clear" color="danger" (click)="deleteTag(tag)">
+            <ion-icon name="trash-outline"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMPTY -->
+    <div *ngIf="tags.length === 0" class="empty">No hay tags todavía</div>
+  </div>
 </ion-content>

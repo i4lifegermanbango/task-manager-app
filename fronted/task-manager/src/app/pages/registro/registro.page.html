@@ -1,38 +1,67 @@
 <ion-content [fullscreen]="true">
+  <div class="header">
+    <h1>Task Manager</h1>
+    <p>Crea tu cuenta</p>
+  </div>
+
   <div class="cajaRegistro">
-    <h2>Registro de Usuario</h2>
-    <ion-label>Nombre: </ion-label>
-    <ion-input [(ngModel)]="name" color="Dark"></ion-input>
-    <ion-label>Correo:</ion-label>
-    <ion-input
-      [(ngModel)]="email"
-      name="email"
-      [class.error]="email && !emailRegex.test(email)"
-      color="dark"
-    ></ion-input>
+    <h2>Registro</h2>
+
+    <div class="grid-form">
+      <div class="input-group">
+        <ion-icon name="person-outline"></ion-icon>
+        <ion-input placeholder="Nombre" [(ngModel)]="name"></ion-input>
+      </div>
+
+      <div class="input-group">
+        <ion-icon name="person-circle-outline"></ion-icon>
+        <ion-input placeholder="Usuario" [(ngModel)]="username"></ion-input>
+      </div>
+
+      <!-- 👇 correo ancho completo -->
+      <div class="input-group full">
+        <ion-icon name="mail-outline"></ion-icon>
+        <ion-input
+          placeholder="Correo"
+          [(ngModel)]="email"
+          [class.error]="email && !emailRegex.test(email)"
+        ></ion-input>
+      </div>
+
+      <div class="input-group">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <ion-input
+          type="password"
+          placeholder="Contraseña"
+          [(ngModel)]="password"
+        ></ion-input>
+      </div>
+
+      <div class="input-group">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <ion-input
+          type="password"
+          placeholder="Repetir contraseña"
+          [(ngModel)]="confirmPassword"
+          [class.error]="password && confirmPassword && password !== confirmPassword"
+        ></ion-input>
+      </div>
+    </div>
+
     <p *ngIf="email && !emailRegex.test(email)" class="error-text">
       El email no es válido
     </p>
-    <ion-label>Usuario:</ion-label>
-    <ion-input [(ngModel)]="username" color="Dark"></ion-input>
-    <ion-label>Contraseña:</ion-label>
-    <ion-input type="password" color="Dark" [(ngModel)]="password"></ion-input>
-    <ion-label>Repetir Contraseña:</ion-label>
-    <ion-input
-      type="password"
-      color="Dark"
-      [(ngModel)]="confirmPassword"
-      [class.error]="password && confirmPassword && password !== confirmPassword"
-    ></ion-input>
+
     <p
       *ngIf="password && confirmPassword && password !== confirmPassword"
       class="error-text"
     >
-      Las Contraseñas no coinciden
+      Las contraseñas no coinciden
     </p>
-  </div>
-  <div class="botones">
-    <ion-button (click)="registrar()">Registrarse</ion-button>
-    <ion-button (click)="goToLogin()">Volver</ion-button>
+
+    <div class="botones">
+      <ion-button (click)="registrar()">Registrarse</ion-button>
+      <ion-button fill="outline" (click)="goToLogin()">Volver</ion-button>
+    </div>
   </div>
 </ion-content>

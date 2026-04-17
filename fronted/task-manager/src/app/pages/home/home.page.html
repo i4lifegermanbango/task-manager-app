@@ -1,72 +1,116 @@
-<ion-header [translucent]="true" class="encabezado">
+<ion-header class="encabezado">
   <ion-toolbar>
-    <ion-title> Gestor de Tareas </ion-title>
+    <ion-buttons slot="start">
+      <ion-select
+        [(ngModel)]="selectedStatus"
+        interface="popover"
+        class="select-header"
+      >
+        <ion-select-option value="pendiente">Pendiente</ion-select-option>
+        <ion-select-option value="en_proceso">En proceso</ion-select-option>
+        <ion-select-option value="completada">Completada</ion-select-option>
+      </ion-select>
+    </ion-buttons>
+
+    <ion-title>Gestor de Tareas</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()">Cerrar sesión</ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <ion-select [(ngModel)]="selectedStatus">
-    <ion-select-option value="pendiente">Pendiente</ion-select-option>
-    <ion-select-option value="en_proceso">En proceso</ion-select-option>
-    <ion-select-option value="completada">Completada</ion-select-option>
-  </ion-select>
+<ion-content>
+  <div class="container">
+    <!-- TOP BAR -->
+    <div class="top-bar">
+      <ion-input
+        [(ngModel)]="newTaskTitle"
+        placeholder="Nueva tarea..."
+        class="main-input"
+      ></ion-input>
 
-  <ion-item class="cabezaLista">
-    <ion-input [(ngModel)]="newTaskTitle" placeholder="Nueva tarea"></ion-input>
-    <input type="file" (change)="onFileSelected($event)" />
-    <ion-button (click)="addTask()">Añadir</ion-button>
-  </ion-item>
+      <!-- FILTRO GLOBAL -->
+      <div class="filter-wrapper">
+        <ion-input
+          [(ngModel)]="filterTagSearch"
+          (ionFocus)="openFilter = true"
+          (ionBlur)="closeFilterDelayed()"
+          (ionInput)="filterTagsGlobal()"
+          placeholder="Filtrar..."
+          class="filter-input"
+          debounce="500"
+        ></ion-input>
 
-  <ion-button
-    size="small"
-    class="boton_eliminar"
-    *ngIf="rol === 'administrador'"
-    (click)="deleteAllTasks()"
-  >
-    borrar todo
-  </ion-button>
-  <ion-button size="small" *ngIf="rol === 'administrador'" (click)="goToTags()">
-    Menu de Tags
-  </ion-button>
+        <div
+          class="filter-dropdown"
+          *ngIf="openFilter && filterFilteredTags.length > 0"
+        >
+          <div
+            class="dropdown-item"
+            *ngFor="let tag of filterFilteredTags"
+            (mousedown)="selectFilterTag(tag)"
+          >
+            {{ tag.name }}
+          </div>
+        </div>
+      </div>
 
-  <ion-item>
-    <ion-textarea
-      [(ngModel)]="filterTagSearch"
-      (ionInput)="filterTagsGlobal()"
-      placeholder="Filtrar por tags..."
-    ></ion-textarea>
-  </ion-item>
+      <input type="file" (change)="onFileSelected($event)" class="file-input" />
 
-  <div class="tags-container">
-    <ion-chip *ngFor="let tag of filterSelectedTags">
-      <ion-label>{{ tag.name }}</ion-label>
-      <ion-icon name="close" (click)="removeFilterTag(tag)"></ion-icon>
-    </ion-chip>
-  </div>
+      <div class="actions">
+        <ion-button
+          size="small"
+          class="boton_eliminar"
+          *ngIf="rol === 'administrador'"
+          (click)="deleteAllTasks()"
+        >
+          Borrar
+        </ion-button>
 
-  <ion-list *ngIf="filterFilteredTags.length > 0">
-    <ion-item
-      *ngFor="let tag of filterFilteredTags"
-      (click)="selectFilterTag(tag)"
-    >
-      {{ tag.name }}
-    </ion-item>
-  </ion-list>
+        <ion-button
+          size="small"
+          class="boton_menuTags"
+          *ngIf="rol === 'administrador'"
+          (click)="goToTags()"
+        >
+          Tags
+        </ion-button>
 
-  <ion-card *ngFor="let task of filteredTasks" class="task-card">
-    <ion-card-header (click)="task.expanded = !task.expanded">
-      <ion-card-title> {{ task.title }} </ion-card-title>
-    </ion-card-header>
+        <ion-button (click)="addTask()" class="btn-add"> Añadir </ion-button>
+      </div>
+    </div>
 
-    <ion-card-content *ngIf="task.expanded">
-      <ion-item lines="none">
-        <ion-checkbox
-          slot="start"
-          (ionChange)="toggleTask(task)"
-        ></ion-checkbox>
+    <!-- GRID DE TAREAS -->
+    <div class="tasks-grid">
+      <ion-card *ngFor="let task of filteredTasks" class="task-card">
+        <!-- HEADER -->
+        <div class="task-header">
+          <div>
+            <h2>{{ task.title }}</h2>
+            <span class="colorRol">Origen: {{ task.userRol }}</span>
+          </div>
 
-        <ion-label> Estado </ion-label>
-        <div class="centrado">
+          <ion-button
+            fill="clear"
+            color="danger"
+            (click)="openDeleteModal(task)"
+          >
+            <ion-icon name="trash"></ion-icon>
+          </ion-button>
+        </div>
+
+        <!-- BODY -->
+        <div class="task-body">
+          <div
+            class="task-status-chip"
+            [ngClass]="task.completed"
+            (click)="toggleTask(task)"
+          >
+            <ion-icon [name]="getStatusIcon(task.completed)"></ion-icon>
+            <span>{{ getStatusLabel(task.completed) }}</span>
+          </div>
+
           <img
             *ngIf="task.image"
             [src]="'http://localhost:5000/uploads/' + task.image"
@@ -74,53 +118,47 @@
           />
         </div>
 
-        <ion-button
-          fill="clear"
-          color="danger"
-          slot="end"
-          (click)="deleteTask(task); $event.stopPropagation()"
-        >
-          <ion-icon name="trash"></ion-icon>
+        <!-- FILTRO TAGS POR TAREA -->
+        <div class="task-filter-wrapper">
+          <ion-input
+            [(ngModel)]="task.tagSearch"
+            (ionFocus)="task.openFilter = true"
+            (ionBlur)="closeTaskFilterDelayed(task)"
+            (ionInput)="filterTags(task)"
+            placeholder="Añadir tag..."
+            class="tag-input"
+          ></ion-input>
+
+          <div
+            class="task-dropdown"
+            *ngIf="task.openFilter && task.filteredTags?.length > 0"
+          >
+            <!-- prettier-ignore -->
+            <div
+              class="dropdown-item"
+              *ngFor="let tag of task.filteredTags"
+              (mousedown)="selectTag(task, tag)"
+            >
+              {{ tag.name }}
+            </div>
+          </div>
+        </div>
+
+        <!-- TAGS -->
+        <div class="tags-container">
+          <ion-chip *ngFor="let tag of task.selectedTags">
+            <ion-label>{{ tag.name }}</ion-label>
+            <ion-icon
+              name="close"
+              (click)="removeSelectedTag(task, tag)"
+            ></ion-icon>
+          </ion-chip>
+        </div>
+
+        <ion-button expand="block" (click)="saveTags(task)">
+          Guardar tags
         </ion-button>
-      </ion-item>
-      <ion-item>
-        <ion-textarea
-          [(ngModel)]="task.tagSearch"
-          (ionInput)="filterTags(task)"
-          (click)="$event.stopPropagation()"
-          (click)="$event.stopPropagation()"
-        ></ion-textarea>
-      </ion-item>
-
-      <div class="tags-container">
-        <ion-chip *ngFor="let tag of task.selectedTags">
-          <ion-label>{{ tag.name }}</ion-label>
-          <ion-icon
-            name="close"
-            (click)="removeSelectedTag(task, tag); $event.stopPropagation()"
-          ></ion-icon>
-        </ion-chip>
-      </div>
-      <ion-list *ngIf="task.filteredTags?.length > 0">
-        <ion-item
-          *ngFor="let tag of task.filteredTags"
-          (click)="selectTag(task, tag); $event.stopPropagation()"
-        >
-          {{ tag.name }}
-        </ion-item>
-      </ion-list>
-
-      <ion-button expand="full" (click)="saveTags(task)">
-        Guardar tags
-      </ion-button>
-    </ion-card-content>
-  </ion-card>
+      </ion-card>
+    </div>
+  </div>
 </ion-content>
-<ion-header class="barraTareas">
-  <ion-toolbar>
-    <ion-title>Tareas</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="logout()">Cerrar sesión</ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>

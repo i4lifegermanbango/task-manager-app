@@ -1,5 +1,16 @@
 ion-content {
-  --background: #112442;
+  --background: radial-gradient(circle at top, #1c355e, #0f1f38);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.subtitulo {
+  color: #b0c4de;
+  text-align: center;
+  margin-top: -2px;
+  margin-bottom: 30px;
+  font-size: 14px;
 }
 
 ion-item {
@@ -14,10 +25,14 @@ ion-item ion-label {
 }
 
 ion-input {
-  margin-bottom: 15px;
-  --background: #b3bcc9;
-  --border-radius: 20px;
-  --padding-start: 15px;
+  --highlight-color-focused: transparent;
+}
+
+ion-input.ion-focused {
+  box-shadow:
+    0 0 0 2px #0cad2c,
+    0 0 15px rgba(12, 173, 44, 0.4);
+  transition: 0.2s;
 }
 
 ion-img {
@@ -40,23 +55,93 @@ ion-title {
 }
 
 .caja-login {
-  display: block;
-  background: #51698f;
-  width: 300px;
-  margin: 20px auto;
-  padding: 50px;
-  border-radius: 10px;
+  background: rgba(81, 105, 143, 0.6);
+  backdrop-filter: blur(10px);
+  width: 320px;
+  margin: 40px auto;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
 ion-button {
-  --border-radius: 50px;
-  width: 135px;
-  --background: #0cad2c;
-  height: 40px;
+  --border-radius: 25px;
+  width: 140px;
+  height: 45px;
+  font-weight: bold;
+  letter-spacing: 1px;
 }
 
+ion-button:hover {
+  transform: scale(1.05);
+  transition: 0.2s;
+}
+
+ion-button:first-child {
+  --background: linear-gradient(135deg, #0cad2c, #0a8f25);
+  color: white;
+}
+
+ion-button:first-child::part(native) {
+  box-shadow: 0 5px 15px rgba(12, 173, 44, 0.4);
+  border-radius: 25px;
+}
+
+ion-button:last-child {
+  --background: transparent;
+  --color: #0cad2c;
+  font-weight: bold;
+}
+
+ion-button:last-child::part(native) {
+  border: 2px solid rgba(12, 173, 44, 0.4);
+}
 .botones {
   display: flex;
   justify-content: center;
   gap: 10px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.header h1 {
+  color: white;
+  font-size: 40px;
+  margin: 0;
+}
+
+.header img {
+  width: 30px;
+  height: 30px;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  background: #d1d7e0;
+  border-radius: 25px;
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.input-group:focus-within {
+  box-shadow: 0 0 0 2px rgba(12, 173, 44, 0.4);
+  transform: translateY(-2px);
+}
+
+.input-group ion-icon {
+  font-size: 20px;
+  color: #555;
+  margin-right: 10px;
+}
+
+.input-group ion-input {
+  flex: 1;
 }
