@@ -22,9 +22,11 @@ router.get("/tasks", auth, async (req, res) => {
   try {
     let tasks;
     if (req.userRol === "administrador") {
-      tasks = await Task.find().populate("tags");
+      tasks = await Task.find().populate("tags").populate("userId", "name");
     } else {
-      tasks = await Task.find({ userId: req.userId }).populate("tags");
+      tasks = await Task.find({ userId: req.userId })
+        .populate("tags")
+        .populate("userId", "name");
     }
     res.json(tasks);
   } catch (error) {
@@ -64,7 +66,12 @@ router.post("/tasks", auth, upload.single("image"), async (req, res) => {
     });
 
     await newTask.save();
-    res.json(newTask);
+
+    const taskPopulated = await Task.findById(newTask._id)
+      .populate("tags")
+      .populate("userId", "name");
+
+    res.json(taskPopulated);
   } catch (error) {
     res.status(500).json({ error: "Error al crear tarea" });
   }
@@ -95,12 +102,20 @@ router.put("/tasks/:id/add-tag", auth, async (req, res) => {
     const task = await Task.findById(id);
     if (!task) return res.status(404).json({ error: "Tarea no encontrada" });
 
+    if (
+      req.userRol !== "administrador" &&
+      task.userId.toString() !== req.userId
+    ) {
+      return res.status(403).json({ error: "No autorizado" });
+    }
+
     if (!task.tags.includes(tagId)) {
       task.tags.push(tagId);
     }
 
     await task.save();
     const updatedTask = await Task.findById(id).populate("tags");
+
     res.json(updatedTask);
   } catch (error) {
     res.status(500).json({ error: "Error al añadir tag" });
@@ -115,16 +130,23 @@ router.put("/tasks/:id/remove-tag", auth, async (req, res) => {
     const task = await Task.findById(id);
     if (!task) return res.status(404).json({ error: "Tarea no encontrada" });
 
+    if (
+      req.userRol !== "administrador" &&
+      task.userId.toString() !== req.userId
+    ) {
+      return res.status(403).json({ error: "No autorizado" });
+    }
+
     task.tags.pull(tagId);
 
     await task.save();
     const updatedTask = await Task.findById(id).populate("tags");
+
     res.json(updatedTask);
   } catch (error) {
     res.status(500).json({ error: "Error al eliminar tag" });
   }
 });
-
 router.delete("/tasks/:id", auth, async (req, res) => {
   try {
     const { id } = req.params;

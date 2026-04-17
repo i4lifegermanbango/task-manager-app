@@ -39,9 +39,17 @@ export class HomePage implements OnInit {
   ngOnInit(): void {}
 
   ionViewWillEnter() {
+    this.resetState();
     this.rol = this.authService.getRol() || '';
     this.loadTasks();
     this.loadTags();
+  }
+
+  resetState() {
+    this.tasks = [];
+    this.filterSelectedTags = [];
+    this.filterTagSearch = '';
+    this.openFilter = false;
   }
 
   filterTagsGlobal() {
@@ -153,6 +161,7 @@ export class HomePage implements OnInit {
 
     if (!task.selectedTags.find((t: Tag) => t._id === tag._id)) {
       task.selectedTags.push(tag);
+      task.tags = [...task.selectedTags];
     }
 
     task.tagSearch = '';
@@ -168,15 +177,35 @@ export class HomePage implements OnInit {
 
     newTagIds.forEach((tagId: string) => {
       if (!currentTagIds.includes(tagId)) {
-        this.taskService.addTagToTask(task._id!, tagId).subscribe();
+        this.taskService
+          .addTagToTask(task._id!, tagId)
+          .subscribe((updatedTask) => {
+            task.tags = updatedTask.tags;
+          });
       }
     });
 
     currentTagIds.forEach((tagId: string) => {
       if (!newTagIds.includes(tagId)) {
-        this.taskService.removeTagFromTask(task._id!, tagId).subscribe();
+        this.taskService
+          .removeTagFromTask(task._id!, tagId)
+          .subscribe((updatedTask) => {
+            task.tags = updatedTask.tags;
+          });
       }
     });
+  }
+
+  getUserDisplay(task: any): string {
+    if (task.userRol === 'administrador') {
+      return 'Administrador';
+    }
+
+    if (task.userId && typeof task.userId === 'object') {
+      return task.userId.name;
+    }
+
+    return 'Usuario';
   }
 
   openTask(task: Task) {
@@ -229,6 +258,15 @@ export class HomePage implements OnInit {
   }
 
   async openDeleteModal(task: any) {
+    const isAdmin = this.rol === 'administrador';
+
+    if (!isAdmin) {
+      this.taskService.deleteTask(task, false).subscribe(() => {
+        this.tasks = this.tasks.filter((t) => t._id !== task._id);
+      });
+      return;
+    }
+
     if (task.userRol !== 'user') {
       this.taskService.deleteTask(task, false).subscribe(() => {
         this.tasks = this.tasks.filter((t) => t._id !== task._id);

@@ -88,7 +88,13 @@
         <div class="task-header">
           <div>
             <h2>{{ task.title }}</h2>
-            <span class="colorRol">Origen: {{ task.userRol }}</span>
+            <span
+              *ngIf="rol === 'administrador'"
+              class="colorRol"
+              class="colorRol"
+            >
+              Origen: {{ getUserDisplay(task) }}</span
+            >
           </div>
 
           <ion-button

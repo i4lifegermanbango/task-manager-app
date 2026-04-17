@@ -7,9 +7,14 @@ import { HttpHeaders } from '@angular/common/http';
 export interface Task {
   _id?: string;
   title: string;
-  completed: 'pendiente' | 'en_proceso' | 'completed';
+  completed: 'pendiente' | 'en_proceso' | 'completada';
   tags?: Tag[];
-  rol?: string;
+  userRol?: string;
+
+  userId?: {
+    _id: string;
+    name: string;
+  };
 }
 
 export interface Tag {
