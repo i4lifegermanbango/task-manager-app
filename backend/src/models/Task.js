@@ -32,6 +32,11 @@ const taskSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    asignada: {
+      type: String,
+      enum: ["no", "limbo", "si"],
+      default: "no",
+    },
   },
   { timestamps: true },
 );

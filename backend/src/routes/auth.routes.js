@@ -6,6 +6,22 @@ const bcrypt = require("bcryptjs");
 const router = express.Router();
 const SECRET_KEY = "mi_secreto";
 
+const auth = require("../middleware/auth.midleware");
+
+router.get("/users", auth, async (req, res) => {
+  try {
+    if (req.userRol !== "administrador") {
+      return res.status(403).json({ error: "Acceso denegado" });
+    }
+
+    const users = await User.find({ rol: "user" }, "name email _id");
+
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener usuarios" });
+  }
+});
+
 router.post("/register", async (req, res) => {
   try {
     const { username, password, rol, name, email } = req.body;

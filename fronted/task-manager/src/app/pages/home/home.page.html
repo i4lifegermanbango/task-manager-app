@@ -28,8 +28,12 @@
 <!-- PANEL LATERAL -->
 <div class="side-panel" [class.open]="menuOpen">
   <div class="panel-item" (click)="goToTrash()">
-    <ion-icon name="trash"></ion-icon>
+    <ion-icon class="trash" name="trash"></ion-icon>
     <span>Papelera</span>
+  </div>
+  <div class="panel-item" (click)="goToMessage()">
+    <ion-icon class="message" name="chatbubble-ellipses-outline"></ion-icon>
+    <span>Notificaciones</span>
   </div>
 </div>
 

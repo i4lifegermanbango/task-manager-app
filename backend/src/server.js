@@ -8,6 +8,7 @@ const connectDB = require("./config/db");
 const tasksRoutes = require("./routes/tasks.routes");
 const authRoutes = require("./routes/auth.routes");
 const tagRoutes = require("./routes/tags.routes");
+const invitacionRoutes = require("./routes/invitacion.routes");
 const multer = require("multer");
 
 const storage = multer.diskStorage({
@@ -29,6 +30,7 @@ connectDB();
 app.use("/api", tasksRoutes);
 app.use("/auth", authRoutes);
 app.use("/api", tagRoutes);
+app.use("/api", invitacionRoutes);
 
 app.get("/", (req, res) => {
   res.send("¡Servidor ha fucnionado!");

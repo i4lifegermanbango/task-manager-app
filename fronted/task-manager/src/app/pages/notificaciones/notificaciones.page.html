@@ -1,0 +1,122 @@
+<ion-header class="encabezado">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="toggleMenu()">
+        <ion-icon name="menu"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title>Notificaciones</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()">Cerrar sesión</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<!-- PANEL LATERAL -->
+<div class="side-panel" [class.open]="menuOpen">
+  <div class="panel-item" (click)="goToHome()">
+    <ion-icon class="home" name="home-outline"></ion-icon>
+    <span>Página principal</span>
+  </div>
+  <div
+    class="panel-item"
+    *ngIf="rol === 'administrador'"
+    (click)="abrirModalCrear()"
+  >
+    <ion-icon class="crear-formulario" name="create-outline"></ion-icon>
+    <span>Crear Invitación</span>
+  </div>
+</div>
+
+<div class="overlay" *ngIf="menuOpen" (click)="toggleMenu()"></div>
+
+<ion-content>
+  <div class="container">
+    <!-- LISTA DE INVITACIONES -->
+    <div class="invitaciones-list">
+      <!-- VACÍO -->
+      <div class="empty-state" *ngIf="invitaciones.length === 0">
+        <ion-icon name="mail-outline"></ion-icon>
+        <span>No hay notificaciones</span>
+      </div>
+
+      <!-- ITEM DESPLEGABLE -->
+      <div class="inv-item" *ngFor="let inv of invitaciones">
+        <!-- CABECERA DESPLEGABLE — estilo top-bar de home -->
+        <div class="inv-header" (click)="toggleExpanded(inv)">
+          <div class="inv-header-left">
+            <ion-icon
+              name="chevron-forward-outline"
+              class="inv-chevron"
+              [class.expanded]="inv.expanded"
+            ></ion-icon>
+            <div class="inv-header-info">
+              <span class="inv-titulo">{{ inv.taskId?.title }}</span>
+              <span class="inv-destinatario" *ngIf="rol === 'administrador'">
+                Para: {{ inv.userId?.name }}
+              </span>
+              <span class="inv-destinatario" *ngIf="rol !== 'administrador'">
+                De: Administrador
+              </span>
+            </div>
+          </div>
+          <span class="inv-fecha">{{ formatFecha(inv.createdAt) }}</span>
+        </div>
+
+        <!-- CONTENIDO EXPANDIDO -->
+        <div class="inv-body" *ngIf="inv.expanded">
+          <!-- MENSAJE SI EXISTE -->
+          <div class="inv-mensaje" *ngIf="inv.mensaje">
+            <ion-icon name="chatbubble-outline"></ion-icon>
+            <span>{{ inv.mensaje }}</span>
+          </div>
+
+          <!-- CARD DE LA TAREA -->
+          <div class="inv-task-card">
+            <div class="task-header">
+              <div>
+                <h2>{{ inv.taskId?.title }}</h2>
+              </div>
+            </div>
+
+            <div class="task-body">
+              <div class="task-status-chip" [ngClass]="inv.taskId?.completed">
+                <ion-icon
+                  [name]="getStatusIcon(inv.taskId?.completed)"
+                ></ion-icon>
+                <span>{{ getStatusLabel(inv.taskId?.completed) }}</span>
+              </div>
+
+              <img
+                *ngIf="inv.taskId?.image"
+                [src]="'http://localhost:5000/uploads/' + inv.taskId?.image"
+                class="task-image"
+              />
+            </div>
+
+            <!-- TAGS solo lectura -->
+            <div class="tags-container" *ngIf="inv.taskId?.tags?.length > 0">
+              <ion-chip *ngFor="let tag of inv.taskId?.tags">
+                <ion-label>{{ tag.name }}</ion-label>
+              </ion-chip>
+            </div>
+          </div>
+
+          <!-- BOTONES ACEPTAR/RECHAZAR solo para usuario -->
+          <div class="inv-actions" *ngIf="rol !== 'administrador'">
+            <ion-button class="btn-aceptar" (click)="gestionar(inv, true)">
+              <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+              Aceptar
+            </ion-button>
+            <ion-button class="btn-rechazar" (click)="gestionar(inv, false)">
+              <ion-icon name="close-outline" slot="start"></ion-icon>
+              Rechazar
+            </ion-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

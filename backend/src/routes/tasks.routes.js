@@ -18,6 +18,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+// ============ GET ============
+
 router.get("/tasks/deleted", auth, async (req, res) => {
   try {
     let tasks;
@@ -36,15 +38,44 @@ router.get("/tasks/deleted", auth, async (req, res) => {
   }
 });
 
+router.get("/tasks/asignadas", auth, async (req, res) => {
+  try {
+    let tasks;
+    if (req.userRol === "administrador") {
+      tasks = await Task.find({ deleted: false, asignada: "limbo" })
+        .populate("tags")
+        .populate("userId", "name");
+    } else {
+      tasks = await Task.find({
+        userId: req.userId,
+        deleted: false,
+        asignada: "limbo",
+      })
+        .populate("tags")
+        .populate("userId", "name");
+    }
+    res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener tareas asignadas" });
+  }
+});
+
 router.get("/tasks", auth, async (req, res) => {
   try {
     let tasks;
     if (req.userRol === "administrador") {
-      tasks = await Task.find({ deleted: false })
+      tasks = await Task.find({
+        deleted: false,
+        asignada: { $in: ["no", "si"] },
+      })
         .populate("tags")
         .populate("userId", "name");
     } else {
-      tasks = await Task.find({ userId: req.userId, deleted: false })
+      tasks = await Task.find({
+        userId: req.userId,
+        deleted: false,
+        asignada: { $in: ["no", "si"] },
+      })
         .populate("tags")
         .populate("userId", "name");
     }
@@ -53,6 +84,8 @@ router.get("/tasks", auth, async (req, res) => {
     res.status(500).json({ error: "Error al obtener tareas" });
   }
 });
+
+// ============ POST ============
 
 router.post("/tasks", auth, upload.single("image"), async (req, res) => {
   try {
@@ -83,6 +116,7 @@ router.post("/tasks", auth, upload.single("image"), async (req, res) => {
       image: req.file ? req.file.filename : null,
       tags: tagIds,
       userRol: req.userRol,
+      asignada: "no",
     });
 
     await newTask.save();
@@ -96,6 +130,70 @@ router.post("/tasks", auth, upload.single("image"), async (req, res) => {
     res.status(500).json({ error: "Error al crear tarea" });
   }
 });
+
+// ============ PUT estáticas ============
+
+router.put("/tasks/restore-selected", auth, async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    const result = await Task.updateMany(
+      { _id: { $in: ids } },
+      { deleted: false },
+    );
+
+    res.json({
+      message: "Tareas restauradas",
+      modified: result.modifiedCount,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Error al restaurar tareas" });
+  }
+});
+
+router.put("/tasks/restore-all", auth, async (req, res) => {
+  try {
+    let restore;
+    if (req.userRol === "administrador") {
+      restore = await Task.updateMany({ deleted: true }, { deleted: false });
+    } else {
+      restore = await Task.updateMany(
+        { deleted: true, userId: req.userId },
+        { deleted: false },
+      );
+    }
+
+    res.json({
+      message: "Todas las tareas restauradas",
+      modified: restore.modifiedCount,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Error al restaurar tareas" });
+  }
+});
+
+router.put("/tasks/move-to-delete", auth, async (req, res) => {
+  try {
+    if (req.userRol !== "administrador") {
+      return res.status(403).json({ error: "Acceso denegado" });
+    }
+
+    const deleteAll = await Task.updateMany(
+      { deleted: false },
+      { deleted: true },
+    );
+
+    res.json({
+      message: "Tareas cambiadas a borrar",
+      modified: deleteAll.modifiedCount,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Error al cambiar las tareas" });
+  }
+});
+
+// ============ PUT dinámicas ============
+
 router.put("/tasks/:id/add-tag", auth, async (req, res) => {
   try {
     const { id } = req.params;
@@ -150,67 +248,6 @@ router.put("/tasks/:id/remove-tag", auth, async (req, res) => {
   }
 });
 
-router.put("/tasks/restore-selected", auth, async (req, res) => {
-  try {
-    const { ids } = req.body;
-
-    const result = await Task.updateMany(
-      {
-        _id: { $in: ids },
-      },
-      { deleted: false },
-    );
-
-    res.json({
-      message: "Tareas restauradas",
-      modified: result.modifiedCount,
-    });
-  } catch (error) {
-    res.status(500).json({ error: "Error al restaurar tareas" });
-  }
-});
-
-router.put("/tasks/restore-all", auth, async (req, res) => {
-  try {
-    let restore;
-    if (req.userRol === "administrador") {
-      restore = await Task.updateMany({ deleted: true }, { deleted: false });
-    } else {
-      restore = await Task.updateMany(
-        { deleted: true, userId: req.userId },
-        { deleted: false },
-      );
-    }
-
-    res.json({
-      message: "Todas las tareas restauradas",
-      modified: restore.modifiedCount,
-    });
-  } catch (error) {
-    res.status(500).json({ error: "Error al restaurar tareas" });
-  }
-});
-
-router.put("/tasks/move-to-delete", auth, async (req, res) => {
-  try {
-    if (req.userRol !== "administrador") {
-      return res.status(403).json({ error: "Acceso denegado" });
-    }
-
-    const deleteAll = await Task.updateMany(
-      { deleted: false },
-      { deleted: true },
-    );
-
-    res.json({
-      message: "Tareas cambiadas a borrar",
-      modified: deleteAll.modifiedCount,
-    });
-  } catch (error) {
-    res.status(500).json({ error: "Error al cambiar las tareas" });
-  }
-});
-
 router.put("/tasks/:id/change-deleted-state", auth, async (req, res) => {
   try {
     const { id } = req.params;
@@ -221,7 +258,7 @@ router.put("/tasks/:id/change-deleted-state", auth, async (req, res) => {
     await task.save();
     res.json(task);
   } catch (error) {
-    res.status(500).json({ error: "Error al actualozar la tarea" });
+    res.status(500).json({ error: "Error al actualizar la tarea" });
   }
 });
 
@@ -242,6 +279,8 @@ router.put("/tasks/:id", auth, async (req, res) => {
   }
 });
 
+// ============ DELETE estáticas ============
+
 router.delete("/tasks/delete-selected", auth, async (req, res) => {
   try {
     const { ids } = req.body;
@@ -251,13 +290,32 @@ router.delete("/tasks/delete-selected", auth, async (req, res) => {
     });
 
     res.json({
-      message: "Tareas restauradas",
-      modified: result.modifiedCount,
+      message: "Tareas eliminadas",
+      deleted: result.deletedCount,
     });
   } catch (error) {
-    res.status(500).json({ error: "Error al restaurar tareas" });
+    res.status(500).json({ error: "Error al eliminar tareas seleccionadas" });
   }
 });
+
+router.delete("/tasks", auth, async (req, res) => {
+  try {
+    if (req.userRol !== "administrador") {
+      return res.status(403).json({ error: "Acceso denegado" });
+    }
+
+    const result = await Task.deleteMany({ deleted: true });
+
+    res.json({
+      message: "Papelera vaciada",
+      deleted: result.deletedCount,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Error al eliminar tareas" });
+  }
+});
+
+// ============ DELETE dinámica ============
 
 router.delete("/tasks/:id", auth, async (req, res) => {
   try {
@@ -303,23 +361,6 @@ router.delete("/tasks/:id", auth, async (req, res) => {
     res.json({ message: "Tarea eliminada definitivamente" });
   } catch (error) {
     res.status(500).json({ error: "Error al eliminar la tarea" });
-  }
-});
-
-router.delete("/tasks", auth, async (req, res) => {
-  try {
-    if (req.userRol !== "administrador") {
-      return res.status(403).json({ error: "Acceso denegado" });
-    }
-
-    const result = await Task.deleteMany({ deleted: true });
-
-    res.json({
-      message: "Papelera vaciada",
-      deleted: result.deletedCount,
-    });
-  } catch (error) {
-    res.status(500).json({ error: "Error al eliminar tareas" });
   }
 });
 

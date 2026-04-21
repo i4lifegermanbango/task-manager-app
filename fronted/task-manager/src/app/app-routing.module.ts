@@ -42,6 +42,10 @@ const routes: Routes = [
     path: 'trash',
     loadChildren: () => import('./pages/trash/trash.module').then( m => m.TrashPageModule)
   },
+  {
+    path: 'notificaciones',
+    loadChildren: () => import('./pages/notificaciones/notificaciones.module').then( m => m.NotificacionesPageModule)
+  },
 ];
 
 @NgModule({

@@ -58,3 +58,12 @@ ion-modal.custom-modal::part(content) {
 ion-modal.custom-modal::part(backdrop) {
   background: rgba(0, 0, 0, 0.5);
 }
+
+ion-modal.custom-modal {
+  --background: transparent;
+}
+
+ion-modal.custom-modal .modal-wrapper,
+ion-modal.custom-modal .ion-page {
+  background: transparent !important;
+}

@@ -1,9 +1,15 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { Router } from '@angular/router';
+
+export interface User {
+  _id: string;
+  name: string;
+  email: string;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -21,6 +27,13 @@ export class AuthService {
     return !!localStorage.getItem('token');
   }
 
+  private getHeaders() {
+    return new HttpHeaders().set(
+      'Authorization',
+      `Bearer ${localStorage.getItem('token')}`,
+    );
+  }
+
   register(username: string, password: string, name: string, email: string) {
     return this.http.post(`${this.apiUrl}/register`, {
       username,
@@ -33,9 +46,7 @@ export class AuthService {
 
   login(username: string, password: string) {
     return this.http
-      .post<{
-        token: string;
-      }>(`${this.apiUrl}/login`, { username, password })
+      .post<{ token: string }>(`${this.apiUrl}/login`, { username, password })
       .pipe(
         tap((response) => {
           localStorage.setItem('token', response.token);
@@ -46,6 +57,13 @@ export class AuthService {
       );
   }
 
+  // 🔹 Obtener usuarios con rol user (solo admin)
+  getUsers(): Observable<User[]> {
+    return this.http.get<User[]>(`${this.apiUrl}/users`, {
+      headers: this.getHeaders(),
+    });
+  }
+
   getRol(): string | null {
     return localStorage.getItem('rol');
   }
@@ -53,7 +71,6 @@ export class AuthService {
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('rol');
-    this.authState.next(false);
     this.authState.next(false);
     this.router.navigate(['/login']);
   }

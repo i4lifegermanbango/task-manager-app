@@ -63,6 +63,11 @@ export class HomePage implements OnInit {
     this.router.navigate(['/trash']);
   }
 
+  goToMessage() {
+    this.menuOpen = false;
+    this.router.navigate(['/notificaciones']);
+  }
+
   filterTagsGlobal() {
     this.openFilter = true;
 
