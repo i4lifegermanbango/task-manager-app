@@ -1,6 +1,11 @@
 <ion-header class="encabezado">
   <ion-toolbar>
     <ion-buttons slot="start">
+      <!-- BOTÓN MENU -->
+      <ion-button (click)="toggleMenu()">
+        <ion-icon name="menu"></ion-icon>
+      </ion-button>
+
       <ion-select
         [(ngModel)]="selectedStatus"
         interface="popover"
@@ -19,6 +24,17 @@
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
+
+<!-- PANEL LATERAL -->
+<div class="side-panel" [class.open]="menuOpen">
+  <div class="panel-item" (click)="goToTrash()">
+    <ion-icon name="trash"></ion-icon>
+    <span>Papelera</span>
+  </div>
+</div>
+
+<!-- OVERLAY (oscurece fondo) -->
+<div class="overlay" *ngIf="menuOpen" (click)="toggleMenu()"></div>
 
 <ion-content>
   <div class="container">
@@ -100,7 +116,7 @@
           <ion-button
             fill="clear"
             color="danger"
-            (click)="openDeleteModal(task)"
+            (click)="toggleDeletedTask(task)"
           >
             <ion-icon name="trash"></ion-icon>
           </ion-button>

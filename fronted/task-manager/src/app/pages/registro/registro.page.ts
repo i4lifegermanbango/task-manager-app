@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { ModalController } from '@ionic/angular';
+import { AlertMessageModalComponent } from '../../components/alert-message-modal/alert-message-modal.component';
 
 @Component({
   selector: 'app-registro',
@@ -20,10 +22,25 @@ export class RegistroPage implements OnInit {
   constructor(
     private router: Router,
     private authAervice: AuthService,
+    private modalCtrl: ModalController,
   ) {}
 
   goToLogin() {
     this.router.navigate(['/login']);
+  }
+
+  async openErrorModal() {
+    const modal = await this.modalCtrl.create({
+      component: AlertMessageModalComponent,
+      componentProps: {
+        titulo: 'Error',
+        mensaje: 'Formato incorrecto para el registro',
+        mostrarCancelar: false,
+      },
+      cssClass: 'custom-modal',
+    });
+
+    await modal.present();
   }
 
   checkPasswordStrength(password: string): boolean {
@@ -49,7 +66,7 @@ export class RegistroPage implements OnInit {
 
   registrar() {
     if (!this.formValido()) {
-      alert('Faltan campos o estan incompletos');
+      this.openErrorModal();
     } else {
       this.authAervice
         .register(this.username, this.password, this.name, this.email)

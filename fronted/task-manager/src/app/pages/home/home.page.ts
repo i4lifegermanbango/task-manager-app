@@ -4,7 +4,7 @@ import { AuthService } from '../../services/auth.service';
 import { ModalController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { TagService, Tag } from '../../services/tag.service';
-import { DeleteTaskModalComponent } from '../../components/delete-task-modal/delete-task-modal.component';
+import { AlertMessageModalComponent } from '../../components/alert-message-modal/alert-message-modal.component';
 
 @Component({
   selector: 'app-home',
@@ -36,6 +36,8 @@ export class HomePage implements OnInit {
     private modalCtrl: ModalController,
   ) {}
 
+  menuOpen: boolean = false;
+
   ngOnInit(): void {}
 
   ionViewWillEnter() {
@@ -50,6 +52,15 @@ export class HomePage implements OnInit {
     this.filterSelectedTags = [];
     this.filterTagSearch = '';
     this.openFilter = false;
+  }
+
+  toggleMenu() {
+    this.menuOpen = !this.menuOpen;
+  }
+
+  goToTrash() {
+    this.menuOpen = false;
+    this.router.navigate(['/trash']);
   }
 
   filterTagsGlobal() {
@@ -117,9 +128,25 @@ export class HomePage implements OnInit {
     }
   }
 
-  addTask() {
-    if (!this.newTaskTitle.trim()) return;
+  async openErrorModal() {
+    const modal = await this.modalCtrl.create({
+      component: AlertMessageModalComponent,
+      componentProps: {
+        titulo: 'Error',
+        mensaje: 'Las tareas han de tener un nombre al menos',
+        mostrarCancelar: false,
+      },
+      cssClass: 'custom-modal',
+    });
 
+    await modal.present();
+  }
+
+  addTask() {
+    if (!this.newTaskTitle.trim()) {
+      this.openErrorModal();
+      return;
+    }
     const formData = new FormData();
     formData.append('title', this.newTaskTitle);
 
@@ -154,14 +181,10 @@ export class HomePage implements OnInit {
   }
 
   selectTag(task: any, tag: Tag) {
-    console.log(task);
-    console.log(tag);
-
     task.keepOpen = true;
 
     if (!task.selectedTags.find((t: Tag) => t._id === tag._id)) {
       task.selectedTags.push(tag);
-      task.tags = [...task.selectedTags];
     }
 
     task.tagSearch = '';
@@ -171,12 +194,23 @@ export class HomePage implements OnInit {
     task.selectedTags = task.selectedTags.filter((t: Tag) => t._id !== tag._id);
   }
 
+  toggleDeletedTask(task: any) {
+    this.taskService.toggleDeleted(task._id).subscribe(() => {
+      this.tasks = this.tasks.filter((t) => t._id !== task._id);
+    });
+  }
+
   saveTags(task: any) {
-    const currentTagIds = task.tags?.map((t: Tag) => t._id!) || [];
-    const newTagIds = task.selectedTags.map((t: Tag) => t._id!);
+    const currentTagIds = (task.tags || []).map((t: Tag) => t._id);
+    const newTagIds = (task.selectedTags || []).map((t: Tag) => t._id);
+
+    console.log('ANTES:', currentTagIds);
+    console.log('DESPUÉS:', newTagIds);
 
     newTagIds.forEach((tagId: string) => {
       if (!currentTagIds.includes(tagId)) {
+        console.log(' Añadiendo tag:', tagId);
+
         this.taskService
           .addTagToTask(task._id!, tagId)
           .subscribe((updatedTask) => {
@@ -187,6 +221,8 @@ export class HomePage implements OnInit {
 
     currentTagIds.forEach((tagId: string) => {
       if (!newTagIds.includes(tagId)) {
+        console.log(' Eliminando tag:', tagId);
+
         this.taskService
           .removeTagFromTask(task._id!, tagId)
           .subscribe((updatedTask) => {
@@ -248,46 +284,13 @@ export class HomePage implements OnInit {
   }
 
   deleteAllTasks() {
-    this.taskService.deleteAllTasks().subscribe(() => {
+    this.taskService.moveAllToDelete().subscribe(() => {
       this.tasks = [];
     });
   }
 
   goToTags() {
     this.router.navigate(['/tags']);
-  }
-
-  async openDeleteModal(task: any) {
-    const isAdmin = this.rol === 'administrador';
-
-    if (!isAdmin) {
-      this.taskService.deleteTask(task, false).subscribe(() => {
-        this.tasks = this.tasks.filter((t) => t._id !== task._id);
-      });
-      return;
-    }
-
-    if (task.userRol !== 'user') {
-      this.taskService.deleteTask(task, false).subscribe(() => {
-        this.tasks = this.tasks.filter((t) => t._id !== task._id);
-      });
-      return;
-    }
-
-    const modal = await this.modalCtrl.create({
-      component: DeleteTaskModalComponent,
-      cssClass: 'custom-modal',
-    });
-
-    await modal.present();
-
-    const { data } = await modal.onDidDismiss();
-
-    if (data?.confirmado) {
-      this.taskService.deleteTask(task, data.avisar).subscribe(() => {
-        this.tasks = this.tasks.filter((t) => t._id !== task._id);
-      });
-    }
   }
 
   closeFilterDelayed() {

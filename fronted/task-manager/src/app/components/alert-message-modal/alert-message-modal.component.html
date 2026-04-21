@@ -1,0 +1,16 @@
+<div class="modal-container">
+  <h2>{{ titulo }}</h2>
+
+  <p>{{ mensaje }}</p>
+
+  <ion-button expand="block" (click)="cerrar(true)"> OK </ion-button>
+
+  <ion-button
+    *ngIf="mostrarCancelar"
+    expand="block"
+    color="medium"
+    (click)="cerrar(false)"
+  >
+    Cancelar
+  </ion-button>
+</div>

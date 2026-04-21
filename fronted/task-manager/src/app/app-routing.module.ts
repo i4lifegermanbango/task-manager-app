@@ -38,6 +38,10 @@ const routes: Routes = [
       import('./pages/tags/tags.module').then((m) => m.TagsPageModule),
     canActivate: [AuthGuard, AdminGuard],
   },
+  {
+    path: 'trash',
+    loadChildren: () => import('./pages/trash/trash.module').then( m => m.TrashPageModule)
+  },
 ];
 
 @NgModule({

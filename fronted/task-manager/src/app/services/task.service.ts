@@ -10,6 +10,7 @@ export interface Task {
   completed: 'pendiente' | 'en_proceso' | 'completada';
   tags?: Tag[];
   userRol?: string;
+  deleted?: boolean;
 
   userId?: {
     _id: string;
@@ -30,75 +31,121 @@ export class TaskService {
 
   constructor(private http: HttpClient) {}
 
-  getTask(): Observable<Task[]> {
-    const headers = new HttpHeaders().set(
+  private getHeaders() {
+    return new HttpHeaders().set(
       'Authorization',
       `Bearer ${localStorage.getItem('token')}`,
     );
-    return this.http.get<Task[]>(this.apiUrl, { headers });
   }
 
-  addTask(formData: FormData): Observable<Task> {
-    return this.http.post<Task>(this.apiUrl, formData, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
+  // 🔹 Obtener tareas activas
+  getTask(): Observable<Task[]> {
+    return this.http.get<Task[]>(this.apiUrl, {
+      headers: this.getHeaders(),
     });
   }
 
+  // 🔹 Obtener tareas eliminadas (papelera)
+  getTrashTasks(): Observable<Task[]> {
+    return this.http.get<Task[]>(`${this.apiUrl}/deleted`, {
+      headers: this.getHeaders(),
+    });
+  }
+
+  // 🔹 Crear tarea
+  addTask(formData: FormData): Observable<Task> {
+    return this.http.post<Task>(this.apiUrl, formData, {
+      headers: this.getHeaders(),
+    });
+  }
+
+  // 🔹 Cambiar estado (pendiente → en_proceso → completada)
+  toggleTask(id: string): Observable<Task> {
+    return this.http.put<Task>(
+      `${this.apiUrl}/${id}`,
+      {},
+      {
+        headers: this.getHeaders(),
+      },
+    );
+  }
+
+  // 🔹 Mover a papelera / restaurar (toggle deleted)
+  toggleDeleted(id: string) {
+    return this.http.put(
+      `${this.apiUrl}/${id}/change-deleted-state`,
+      {},
+      {
+        headers: this.getHeaders(),
+      },
+    );
+  }
+
+  // 🔹 Añadir tag
   addTagToTask(taskId: string, tagId: string): Observable<Task> {
     return this.http.put<Task>(
       `${this.apiUrl}/${taskId}/add-tag`,
       { tagId },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      },
+      { headers: this.getHeaders() },
     );
   }
 
+  // 🔹 Eliminar tag
   removeTagFromTask(taskId: string, tagId: string): Observable<Task> {
     return this.http.put<Task>(
       `${this.apiUrl}/${taskId}/remove-tag`,
       { tagId },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      },
+      { headers: this.getHeaders() },
     );
   }
 
-  sendEmail(email: string, mensaje: string) {
-    return this.http.post('http://localhost:5000/api/send-email', {
-      email,
-      mensaje,
-    });
+  // 🔹 Restaurar tareas seleccionadas
+  restoreSelected(ids: string[]) {
+    return this.http.put(
+      `${this.apiUrl}/restore-selected`,
+      { ids },
+      { headers: this.getHeaders() },
+    );
   }
 
-  toggleTask(id: string): Observable<Task> {
-    return this.http.put<Task>(`${this.apiUrl}/${id}`, {});
+  // 🔹 Restaurar todas las tareas (papelera)
+  restoreAll() {
+    return this.http.put(
+      `${this.apiUrl}/restore-all`,
+      {},
+      { headers: this.getHeaders() },
+    );
   }
 
+  // 🔹 Mover TODAS a papelera (solo admin)
+  moveAllToDelete() {
+    return this.http.put(
+      `${this.apiUrl}/move-to-delete`,
+      {},
+      { headers: this.getHeaders() },
+    );
+  }
+
+  // 🔹 Eliminar tarea definitivamente
   deleteTask(task: Task, avisar: boolean = false) {
-    const headers = new HttpHeaders().set(
-      'Authorization',
-      `Bearer ${localStorage.getItem('token')}`,
-    );
-
-    return this.http.delete(`http://localhost:5000/api/tasks/${task._id}`, {
-      headers,
+    return this.http.delete(`${this.apiUrl}/${task._id}`, {
+      headers: this.getHeaders(),
       body: { avisar },
     });
   }
 
+  // 🔹 Vaciar papelera (solo admin)
   deleteAllTasks() {
-    const headers = new HttpHeaders().set(
-      'Authorization',
-      `Bearer ${localStorage.getItem('token')}`,
-    );
+    return this.http.delete(this.apiUrl, {
+      headers: this.getHeaders(),
+    });
+  }
 
-    return this.http.delete(this.apiUrl, { headers });
+  // 🔹 Enviar email (lo dejas igual)
+  sendEmail(email: string, mensaje: string) {
+    return this.http.post(`${environment.apiUrl}/send-email`, {
+      email,
+      mensaje,
+    });
   }
 }

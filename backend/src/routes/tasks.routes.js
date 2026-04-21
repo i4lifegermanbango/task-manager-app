@@ -18,13 +18,33 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+router.get("/tasks/deleted", auth, async (req, res) => {
+  try {
+    let tasks;
+    if (req.userRol === "administrador") {
+      tasks = await Task.find({ deleted: true })
+        .populate("tags")
+        .populate("userId", "name");
+    } else {
+      tasks = await Task.find({ userId: req.userId, deleted: true })
+        .populate("tags")
+        .populate("userId", "name");
+    }
+    res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener tareas" });
+  }
+});
+
 router.get("/tasks", auth, async (req, res) => {
   try {
     let tasks;
     if (req.userRol === "administrador") {
-      tasks = await Task.find().populate("tags").populate("userId", "name");
+      tasks = await Task.find({ deleted: false })
+        .populate("tags")
+        .populate("userId", "name");
     } else {
-      tasks = await Task.find({ userId: req.userId })
+      tasks = await Task.find({ userId: req.userId, deleted: false })
         .populate("tags")
         .populate("userId", "name");
     }
@@ -76,24 +96,6 @@ router.post("/tasks", auth, upload.single("image"), async (req, res) => {
     res.status(500).json({ error: "Error al crear tarea" });
   }
 });
-
-router.put("/tasks/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const task = await Task.findById(id);
-    if (!task) return res.status(404).json({ error: "Tarea no encontrada" });
-    if (task.completed === "pendiente") {
-      task.completed = "en_proceso";
-    } else if (task.completed === "en_proceso") {
-      task.completed = "completada";
-    }
-    await task.save();
-    res.json(task);
-  } catch (error) {
-    res.status(500).json({ error: "Error al actualizar la tarea" });
-  }
-});
-
 router.put("/tasks/:id/add-tag", auth, async (req, res) => {
   try {
     const { id } = req.params;
@@ -147,6 +149,116 @@ router.put("/tasks/:id/remove-tag", auth, async (req, res) => {
     res.status(500).json({ error: "Error al eliminar tag" });
   }
 });
+
+router.put("/tasks/restore-selected", auth, async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    const result = await Task.updateMany(
+      {
+        _id: { $in: ids },
+      },
+      { deleted: false },
+    );
+
+    res.json({
+      message: "Tareas restauradas",
+      modified: result.modifiedCount,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Error al restaurar tareas" });
+  }
+});
+
+router.put("/tasks/restore-all", auth, async (req, res) => {
+  try {
+    let restore;
+    if (req.userRol === "administrador") {
+      restore = await Task.updateMany({ deleted: true }, { deleted: false });
+    } else {
+      restore = await Task.updateMany(
+        { deleted: true, userId: req.userId },
+        { deleted: false },
+      );
+    }
+
+    res.json({
+      message: "Todas las tareas restauradas",
+      modified: restore.modifiedCount,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Error al restaurar tareas" });
+  }
+});
+
+router.put("/tasks/move-to-delete", auth, async (req, res) => {
+  try {
+    if (req.userRol !== "administrador") {
+      return res.status(403).json({ error: "Acceso denegado" });
+    }
+
+    const deleteAll = await Task.updateMany(
+      { deleted: false },
+      { deleted: true },
+    );
+
+    res.json({
+      message: "Tareas cambiadas a borrar",
+      modified: deleteAll.modifiedCount,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Error al cambiar las tareas" });
+  }
+});
+
+router.put("/tasks/:id/change-deleted-state", auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const task = await Task.findById(id);
+
+    task.deleted = !task.deleted;
+
+    await task.save();
+    res.json(task);
+  } catch (error) {
+    res.status(500).json({ error: "Error al actualozar la tarea" });
+  }
+});
+
+router.put("/tasks/:id", auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const task = await Task.findById(id);
+    if (!task) return res.status(404).json({ error: "Tarea no encontrada" });
+    if (task.completed === "pendiente") {
+      task.completed = "en_proceso";
+    } else if (task.completed === "en_proceso") {
+      task.completed = "completada";
+    }
+    await task.save();
+    res.json(task);
+  } catch (error) {
+    res.status(500).json({ error: "Error al actualizar la tarea" });
+  }
+});
+
+router.delete("/tasks/delete-selected", auth, async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    const result = await Task.deleteMany({
+      _id: { $in: ids },
+    });
+
+    res.json({
+      message: "Tareas restauradas",
+      modified: result.modifiedCount,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Error al restaurar tareas" });
+  }
+});
+
 router.delete("/tasks/:id", auth, async (req, res) => {
   try {
     const { id } = req.params;
@@ -157,11 +269,18 @@ router.delete("/tasks/:id", auth, async (req, res) => {
     if (!task) {
       return res.status(404).json({ error: "Tarea no encontrada" });
     }
+
     if (
       req.userRol !== "administrador" &&
       task.userId.toString() !== req.userId
     ) {
       return res.status(403).json({ error: "No autorizado" });
+    }
+
+    if (!task.deleted) {
+      return res.status(400).json({
+        error: "Solo se pueden eliminar tareas que estén en la papelera",
+      });
     }
 
     const user = await User.findById(task.userId);
@@ -181,7 +300,7 @@ router.delete("/tasks/:id", auth, async (req, res) => {
       );
     }
 
-    res.json({ message: "Tarea eliminada" });
+    res.json({ message: "Tarea eliminada definitivamente" });
   } catch (error) {
     res.status(500).json({ error: "Error al eliminar la tarea" });
   }
@@ -193,10 +312,15 @@ router.delete("/tasks", auth, async (req, res) => {
       return res.status(403).json({ error: "Acceso denegado" });
     }
 
-    await Task.deleteMany();
+    const result = await Task.deleteMany({ deleted: true });
 
-    res.json({ message: "Todas las tareas eliminadas" });
-  } catch (error) {}
+    res.json({
+      message: "Papelera vaciada",
+      deleted: result.deletedCount,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Error al eliminar tareas" });
+  }
 });
 
 module.exports = router;
