@@ -1,0 +1,74 @@
+<ion-content [fullscreen]="true">
+  <div class="header">
+    <h1>Task Manager</h1>
+    <p>Crea tu cuenta</p>
+  </div>
+
+  <div class="cajaRegistro">
+    <h2>Registro</h2>
+
+    <div class="grid-form">
+      <div class="input-group">
+        <ion-icon name="person-outline"></ion-icon>
+        <ion-input placeholder="Nombre" [(ngModel)]="name"></ion-input>
+      </div>
+
+      <div class="input-group">
+        <ion-icon name="person-circle-outline"></ion-icon>
+        <ion-input placeholder="Usuario" [(ngModel)]="username"></ion-input>
+      </div>
+
+      <!-- 👇 correo ancho completo -->
+      <div class="input-group full">
+        <ion-icon name="mail-outline"></ion-icon>
+        <ion-input
+          placeholder="Correo"
+          [(ngModel)]="email"
+          [class.error]="email && !emailRegex.test(email)"
+        ></ion-input>
+      </div>
+
+      <div class="input-group">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <ion-input
+          type="password"
+          placeholder="Contraseña"
+          [(ngModel)]="password"
+          (ionInput)="onPasswordChange()"
+          [class.error]="password && !passwordValid"
+        ></ion-input>
+      </div>
+
+      <div class="input-group">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <ion-input
+          type="password"
+          placeholder="Repetir contraseña"
+          [(ngModel)]="confirmPassword"
+          [class.error]="password && confirmPassword && password !== confirmPassword"
+        ></ion-input>
+      </div>
+    </div>
+
+    <p *ngIf="email && !emailRegex.test(email)" class="error-text">
+      El email no es válido
+    </p>
+
+    <p
+      *ngIf="password && confirmPassword && password !== confirmPassword"
+      class="error-text"
+    >
+      Las contraseñas no coinciden
+    </p>
+
+    <p *ngIf="password && !passwordValid" class="error-text">
+      La contraseña debe tener mínimo 6 caracteres y al menos 2 de estos:
+      mayúscula, minúscula, número o símbolo
+    </p>
+
+    <div class="botones">
+      <ion-button (click)="registrar()">Registrarse</ion-button>
+      <ion-button fill="outline" (click)="goToLogin()">Volver</ion-button>
+    </div>
+  </div>
+</ion-content>

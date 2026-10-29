@@ -1,0 +1,39 @@
+<div class="modal-card">
+  <!-- HEADER -->
+  <div class="modal-header">
+    <h2>Nueva Invitación</h2>
+    <ion-button fill="clear" (click)="cerrar()">
+      <ion-icon name="close" style="color: #ff2d2d; font-size: 22px"></ion-icon>
+    </ion-button>
+  </div>
+
+  <!-- TÍTULO TAREA -->
+  <ion-input
+    [(ngModel)]="titulo"
+    placeholder="Título de la tarea..."
+    class="modal-input"
+  ></ion-input>
+
+  <!-- SELECTOR DE USUARIO -->
+  <select [(ngModel)]="usuarioSeleccionado" class="modal-select">
+    <option value="" disabled selected>Seleccionar usuario...</option>
+    <option *ngFor="let user of usuarios" [value]="user._id">
+      {{ user.name }}
+    </option>
+  </select>
+
+  <!-- MENSAJE OPCIONAL -->
+  <textarea
+    [(ngModel)]="mensaje"
+    placeholder="Mensaje opcional..."
+    class="modal-textarea"
+  ></textarea>
+
+  <!-- IMAGEN -->
+  <input type="file" (change)="onFileSelected($event)" class="modal-file" />
+
+  <!-- BOTÓN ENVIAR -->
+  <ion-button expand="block" class="btn-enviar" (click)="enviar()">
+    Enviar invitación
+  </ion-button>
+</div>

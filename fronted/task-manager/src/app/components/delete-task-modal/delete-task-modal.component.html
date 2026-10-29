@@ -1,0 +1,15 @@
+<div class="modal-container">
+  <h2>Eliminar tarea</h2>
+
+  <p>¿Quieres avisar al usuario?</p>
+
+  <ion-item lines="none">
+    <ion-label>Avisar por correo</ion-label>
+    <ion-checkbox [(ngModel)]="avisarUsuario"></ion-checkbox>
+  </ion-item>
+
+  <div class="buttons">
+    <ion-button color="medium" (click)="cancelar()"> Cancelar </ion-button>
+    <ion-button color="danger" (click)="confirmar()"> Eliminar </ion-button>
+  </div>
+</div>

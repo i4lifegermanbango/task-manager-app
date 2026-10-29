@@ -1,0 +1,131 @@
+<ion-header class="encabezado">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="toggleMenu()">
+        <ion-icon name="menu"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title>Papelera</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()">Cerrar sesión</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<!-- MENU -->
+<div class="side-panel" [class.open]="menuOpen">
+  <div class="panel-item" (click)="goToHome()">
+    <ion-icon name="arrow-back"></ion-icon>
+    <span>Volver</span>
+  </div>
+</div>
+
+<div class="overlay" *ngIf="menuOpen" (click)="toggleMenu()"></div>
+
+<ion-content>
+  <div class="container">
+    <!-- 🔥 TOP BAR TRASH -->
+    <div class="top-bar">
+      <!-- FILTRO TAG -->
+      <div class="filter-wrapper">
+        <ion-input
+          [(ngModel)]="filterTagSearch"
+          (ionFocus)="openFilter = true"
+          (ionBlur)="closeFilterDelayed()"
+          (ionInput)="filterTagsGlobal()"
+          placeholder="Filtrar..."
+          class="filter-input"
+          debounce="500"
+        ></ion-input>
+
+        <div
+          class="filter-dropdown"
+          *ngIf="openFilter && filterFilteredTags.length > 0"
+        >
+          <div
+            class="dropdown-item"
+            *ngFor="let tag of filterFilteredTags"
+            (mousedown)="selectFilterTag(tag)"
+          >
+            {{ tag.name }}
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <div class="actions">
+          <ion-button class="btn-restaurar" (click)="restoreSelected()"
+            >Restaurar</ion-button
+          >
+          <ion-button class="btn-eliminar" (click)="deleteSelected()"
+            >Eliminar</ion-button
+          >
+          <ion-button class="btn-restaurar-todo" (click)="restoreAll()"
+            >Restaurar todo</ion-button
+          >
+          <ion-button class="btn-borrar-todo" (click)="deleteAll()"
+            >Borrar todo</ion-button
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- GRID -->
+    <div class="tasks-grid">
+      <ion-card *ngFor="let task of filteredTasks" class="task-card">
+        <!-- HEADER -->
+        <div class="task-header">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <input
+              type="checkbox"
+              [checked]="isSelected(task._id)"
+              (change)="toggleSelect(task._id)"
+              style="
+                width: 18px;
+                height: 18px;
+                accent-color: #0cad2c;
+                cursor: pointer;
+              "
+            />
+            <div>
+              <h2>{{ task.title }}</h2>
+              <span *ngIf="rol === 'administrador'" class="colorRol">
+                Origen: {{ getUserDisplay(task) }}
+              </span>
+            </div>
+          </div>
+
+          <ion-button
+            fill="clear"
+            color="danger"
+            (click)="openDeleteModal(task)"
+          >
+            <ion-icon name="trash"></ion-icon>
+          </ion-button>
+        </div>
+        <!-- BODY -->
+        <div class="task-body">
+          <div class="task-status-chip" [ngClass]="task.completed">
+            <ion-icon [name]="getStatusIcon(task.completed)"></ion-icon>
+            <span>{{ getStatusLabel(task.completed) }}</span>
+          </div>
+
+          <img
+            *ngIf="task.image"
+            [src]="'http://localhost:5000/uploads/' + task.image"
+            class="task-image"
+          />
+        </div>
+
+        <!-- TAGS -->
+        <div class="tags-container">
+          <ion-chip *ngFor="let tag of task.tags">
+            <ion-label>{{ tag.name }}</ion-label>
+          </ion-chip>
+        </div>
+      </ion-card>
+    </div>
+  </div>
+</ion-content>
