@@ -1,15 +1,19 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const fs = require("fs");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const FRONTEND_URL = process.env.FRONTEND_URL;
 const connectDB = require("./config/db");
 const tasksRoutes = require("./routes/tasks.routes");
 const authRoutes = require("./routes/auth.routes");
 const tagRoutes = require("./routes/tags.routes");
 const invitacionRoutes = require("./routes/invitacion.routes");
 const multer = require("multer");
+
+fs.mkdirSync("uploads", { recursive: true });
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -22,7 +26,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-app.use(cors());
+app.use(cors(FRONTEND_URL ? { origin: FRONTEND_URL } : {}));
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 connectDB();
