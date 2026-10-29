@@ -5,6 +5,7 @@ import { TaskService, Task } from '../../services/task.service';
 import { AuthService } from '../../services/auth.service';
 import { ModalController } from '@ionic/angular';
 import { DeleteTaskModalComponent } from '../../components/delete-task-modal/delete-task-modal.component';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-trash',
@@ -20,6 +21,7 @@ export class TrashPage implements OnInit {
     private authService: AuthService,
     private modalCtrl: ModalController,
   ) {}
+
   menuOpen: boolean = false;
   tasks: any[] = [];
   newTaskTitle: string = '';
@@ -36,6 +38,8 @@ export class TrashPage implements OnInit {
   selectedIds: string[] = [];
 
   openFilter: boolean = false;
+
+  serverUrl = environment.serverUrl;
 
   ionViewWillEnter() {
     this.loadTasks();
@@ -158,6 +162,7 @@ export class TrashPage implements OnInit {
       this.filterSelectedTags = [];
     }
   }
+
   loadTasks() {
     this.taskService.getTrashTasks().subscribe((tasks) => {
       console.log('TRASH:', tasks);
@@ -232,6 +237,7 @@ export class TrashPage implements OnInit {
 
     return result;
   }
+
   filterTagsLogic(search: string, tags: Tag[]): Tag[] {
     const value = search.toLowerCase();
 

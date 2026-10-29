@@ -5,6 +5,7 @@ import { ModalController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { TagService, Tag } from '../../services/tag.service';
 import { AlertMessageModalComponent } from '../../components/alert-message-modal/alert-message-modal.component';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-home',
@@ -27,6 +28,8 @@ export class HomePage implements OnInit {
   filterSelectedTags: Tag[] = [];
 
   openFilter: boolean = false;
+
+  serverUrl = environment.serverUrl;
 
   constructor(
     private taskService: TaskService,
@@ -195,6 +198,7 @@ export class HomePage implements OnInit {
     task.tagSearch = '';
     task.filteredTags = [];
   }
+
   removeSelectedTag(task: any, tag: Tag) {
     task.selectedTags = task.selectedTags.filter((t: Tag) => t._id !== tag._id);
   }

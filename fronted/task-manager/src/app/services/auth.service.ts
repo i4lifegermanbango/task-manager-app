@@ -15,7 +15,8 @@ export interface User {
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:5000/auth';
+  private apiUrl = environment.authUrl;
+
   private authState = new BehaviorSubject<boolean>(this.hasToken());
 
   constructor(

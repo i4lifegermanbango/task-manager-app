@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { ModalController } from '@ionic/angular';
 import { InvitacionService } from '../../services/invitacion.service';
 import { FormularioInvitacionModalComponent } from '../../components/formulario-invitacion-modal/formulario-invitacion-modal.component';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-notificaciones',
@@ -15,6 +16,8 @@ export class NotificacionesPage implements OnInit {
   menuOpen: boolean = false;
   rol = '';
   invitaciones: any[] = [];
+
+  serverUrl = environment.serverUrl;
 
   constructor(
     private authService: AuthService,

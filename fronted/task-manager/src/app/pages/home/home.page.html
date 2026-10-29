@@ -139,7 +139,7 @@
 
           <img
             *ngIf="task.image"
-            [src]="'http://localhost:5000/uploads/' + task.image"
+            [src]="serverUrl + '/uploads/' + task.image"
             class="task-image"
           />
         </div>
@@ -161,12 +161,12 @@
           >
             <!-- prettier-ignore -->
             <div
-              class="dropdown-item"
-              *ngFor="let tag of task.filteredTags"
-              (mousedown)="selectTag(task, tag)"
-            >
-              {{ tag.name }}
-            </div>
+							class="dropdown-item"
+							*ngFor="let tag of task.filteredTags"
+							(mousedown)="selectTag(task, tag)"
+						>
+							{{ tag.name }}
+						</div>
           </div>
         </div>
 

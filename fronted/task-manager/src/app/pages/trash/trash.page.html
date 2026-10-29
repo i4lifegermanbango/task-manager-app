@@ -114,7 +114,7 @@
 
           <img
             *ngIf="task.image"
-            [src]="'http://localhost:5000/uploads/' + task.image"
+            [src]="serverUrl + '/uploads/' + task.image"
             class="task-image"
           />
         </div>
