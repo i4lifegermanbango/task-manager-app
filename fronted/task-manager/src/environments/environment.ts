@@ -3,10 +3,10 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:5000/api',
-  authUrl: 'http://localhost:5000/auth',
-  serverUrl: 'http://localhost:5000',
+  production: true,
+  apiUrl: 'https://task-manager-app-fronted.onrender.com/api',
+  authUrl: 'https://task-manager-app-fronted.onrender.com/auth',
+  serverUrl: 'https://task-manager-app-fronted.onrender.com.com',
 };
 
 /*
